@@ -1,0 +1,193 @@
+Rate Limit Changer for Cisco Switches
+
+This Python script connects to a Cisco switch and periodically changes the rate limit on a specific policy map. It cycles through a predefined list of rate limits every 15 minutes, allowing for dynamic bandwidth management on your network.
+
+Table of Contents
+
+	•	Prerequisites
+	•	Installation
+	•	Configuration
+	•	Usage
+	•	Logging
+	•	Rate Limits
+	•	Troubleshooting
+	•	Contributing
+	•	License
+
+Prerequisites
+
+	•	Python 3.6 or higher
+	•	Cisco switch with SSH access and the ability to modify configurations
+	•	Netmiko library installed (netmiko handles SSH connections to network devices)
+
+Installation
+
+	1.	Clone the repository:
+
+git clone https://github.com/thepingdoctor/Auto-Cisco-Rate-Limit.git
+
+
+	2.	Navigate to the project directory:
+
+cd Auto-Cisco-Rate-Limit
+
+
+	3.	Install the required Python packages:
+
+pip install netmiko
+
+Alternatively, if a requirements.txt file is provided:
+
+pip install -r requirements.txt
+
+
+
+Configuration
+
+Environment Variables
+
+Before running the script, set the following environment variables with your switch’s connection details:
+	•	SWITCH_IP - The IP address of the Cisco switch
+	•	SWITCH_USERNAME - SSH username for the switch
+	•	SWITCH_PASSWORD - SSH password for the switch
+	•	SWITCH_ENABLE_PASSWORD - Password to enter enable mode on the switch
+
+Setting Environment Variables
+
+On Unix/Linux/MacOS:
+
+export SWITCH_IP=192.168.1.1
+export SWITCH_USERNAME=admin
+export SWITCH_PASSWORD=yourpassword
+export SWITCH_ENABLE_PASSWORD=enablepassword
+
+On Windows Command Prompt:
+
+set SWITCH_IP=192.168.1.1
+set SWITCH_USERNAME=admin
+set SWITCH_PASSWORD=yourpassword
+set SWITCH_ENABLE_PASSWORD=enablepassword
+
+On Windows PowerShell:
+
+$env:SWITCH_IP="192.168.1.1"
+$env:SWITCH_USERNAME="admin"
+$env:SWITCH_PASSWORD="yourpassword"
+$env:SWITCH_ENABLE_PASSWORD="enablepassword"
+
+Adjusting the Rate Limits
+
+The script uses a list of predefined rate limits (in bits per second) that it cycles through:
+
+rate_limits = [
+    2944000,    # 2.944 Mbps
+    14400000,   # 14.4 Mbps
+    9312000,    # 9.312 Mbps
+    22400000,   # 22.4 Mbps
+    7424000,    # 7.424 Mbps
+    17344000,   # 17.344 Mbps
+    6944000,    # 6.944 Mbps
+    27456000,   # 27.456 Mbps
+    9952000,    # 9.952 Mbps
+    15360000,   # 15.36 Mbps
+    34304000,   # 34.304 Mbps
+    18336000    # 18.336 Mbps
+]
+
+You can modify this list in the script to include the rate limits suitable for your network environment.
+
+Customizing Configuration Commands
+
+The script sends specific configuration commands to the switch:
+
+config_commands = [
+    'policy-map tkm-soft',
+    'class limit50',
+    'no police',
+    f'police cir {rate_limit}',
+    '  conform-action transmit',
+    '  exceed-action drop',
+    'end',
+    'write memory'
+]
+
+	•	Policy Map (policy-map tkm-soft): Ensure this matches the policy map configured on your switch.
+	•	Class Map (class limit50): Ensure this matches the class map within your policy.
+
+If your switch uses different policy or class names, update these commands accordingly.
+
+Usage
+
+Run the script with Python:
+
+python rate_limit_changer.py
+
+Functionality:
+	•	Environment Variable Check: The script first checks that all required environment variables are set.
+	•	Main Loop: It enters a loop where it:
+	•	Retrieves the next rate limit from the list.
+	•	Connects to the switch via SSH.
+	•	Enters enable mode.
+	•	Applies the new rate limit to the specified policy map and class.
+	•	Saves the configuration.
+	•	Waits for 15 minutes before applying the next rate limit.
+
+Note: The script runs indefinitely until manually stopped.
+
+Logging
+
+The script logs its activities to rate_limit_changes.log in the same directory. Logging includes:
+	•	Timestamps
+	•	Information about rate limit changes
+	•	Errors encountered during execution
+
+Sample Log Entry
+
+2023-10-01 12:00:00 INFO: Rate limit changed to 2944000 bps
+2023-10-01 12:15:00 INFO: Rate limit changed to 14400000 bps
+2023-10-01 12:30:00 ERROR: An error occurred: Connection timed out
+
+Rate Limits
+
+The rate limits are adjusted to standard telecommunication rates, aligning with common bandwidth increments. These adjustments ensure compatibility and optimal performance in network environments.
+
+Understanding the Rate Limits:
+	•	2944000 bps: Adjusted from 2,938,033 bps to 2,944,000 bps (2.944 Mbps)
+	•	14400000 bps: Adjusted from 14,389,400 bps to 14,400,000 bps (14.4 Mbps)
+	•	9312000 bps: Adjusted from 9,313,231 bps to 9,312,000 bps (9.312 Mbps)
+	•	22400000 bps: Adjusted from 22,424,200 bps to 22,400,000 bps (22.4 Mbps)
+	•	7424000 bps: Adjusted from 7,423,800 bps to 7,424,000 bps (7.424 Mbps)
+	•	17344000 bps: Adjusted from 17,332,300 bps to 17,344,000 bps (17.344 Mbps)
+	•	6944000 bps: Adjusted from 6,938,033 bps to 6,944,000 bps (6.944 Mbps)
+	•	27456000 bps: Adjusted from 27,442,900 bps to 27,456,000 bps (27.456 Mbps)
+	•	9952000 bps: Adjusted from 9,938,033 bps to 9,952,000 bps (9.952 Mbps)
+	•	15360000 bps: Adjusted from 15,324,300 bps to 15,360,000 bps (15.36 Mbps)
+	•	34304000 bps: Adjusted from 34,313,410 bps to 34,304,000 bps (34.304 Mbps)
+	•	18336000 bps: Adjusted from 18,324,300 bps to 18,336,000 bps (18.336 Mbps)
+
+Feel free to modify the rate_limits list to match your specific bandwidth requirements.
+
+Troubleshooting
+
+	•	Missing Environment Variables:
+If you receive an error about missing environment variables, double-check that all required variables are set and correctly spelled.
+	•	Connection Issues:
+	•	Ensure the switch’s IP address is correct and reachable.
+	•	Verify that SSH is enabled on the switch.
+	•	Confirm that the provided username and password have the necessary permissions.
+	•	Authentication Failures:
+If the script cannot enter enable mode, make sure the SWITCH_ENABLE_PASSWORD is correct and that the user has enable privileges.
+	•	Command Errors:
+If the switch returns an error for any configuration command, check that the policy map and class names match those on your switch.
+	•	Script Exceptions:
+Any exceptions will be logged in rate_limit_changes.log. Review this file for detailed error messages.
+
+Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request if you have suggestions or improvements.
+
+License
+
+This project is licensed under the MIT License.
+
+Disclaimer: Use this script responsibly. Modifying network configurations can impact network performance and connectivity. Ensure you have authorization to make changes to the network devices.
