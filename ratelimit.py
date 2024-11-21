@@ -49,7 +49,7 @@ def change_rate_limit(rate_limit):
 
         # Configuration commands
         config_commands = [
-            'policy-map tkm-soft',
+            'policy-map !POLICY-NAME',
             'class limit50',
             'no police',
             f'police cir {rate_limit}',
